@@ -7,13 +7,15 @@ from typing import List, Dict
 # Load environment variables
 load_dotenv()
 
-# Initialize DeepSeek client
+# Define a default base URL or fetch it from the environment if available
+base_url = os.getenv("DEEPSEEK_BASE_URL")
+
+# Initialize DeepSeek client with dynamic base URL
 client = OpenAI(
-    api_key=os.getenv("DEEPSEEK_API_KEY"), base_url="https://api.deepseek.com/beta"
+    api_key=os.getenv("DEEPSEEK_API_KEY"), base_url=base_url
 )
 
-DEEPSEEK_V3_MODEL = "deepseek-chat"
-
+DEEPSEEK_V3_MODEL = os.getenv("DEEPSEEK_MODEL")
 
 def prompt(prompt: str, model: str = DEEPSEEK_V3_MODEL) -> str:
     """
@@ -23,7 +25,6 @@ def prompt(prompt: str, model: str = DEEPSEEK_V3_MODEL) -> str:
         model=model, messages=[{"role": "user", "content": prompt}], stream=False
     )
     return response.choices[0].message.content
-
 
 def fill_in_the_middle_prompt(
     prompt: str, suffix: str, model: str = DEEPSEEK_V3_MODEL
@@ -39,7 +40,6 @@ def fill_in_the_middle_prompt(
     """
     response = client.completions.create(model=model, prompt=prompt, suffix=suffix)
     return prompt + response.choices[0].text + suffix
-
 
 def json_prompt(prompt: str, model: str = DEEPSEEK_V3_MODEL) -> dict:
     """
@@ -59,7 +59,6 @@ def json_prompt(prompt: str, model: str = DEEPSEEK_V3_MODEL) -> dict:
         model=model, messages=messages, response_format={"type": "json_object"}
     )
     return json.loads(response.choices[0].message.content)
-
 
 def prefix_prompt(
     prompt: str, prefix: str, model: str = DEEPSEEK_V3_MODEL, no_prefix: bool = False
@@ -86,7 +85,6 @@ def prefix_prompt(
     else:
         return prefix + response.choices[0].message.content
 
-
 def prefix_then_stop_prompt(
     prompt: str, prefix: str, suffix: str, model: str = DEEPSEEK_V3_MODEL
 ) -> str:
@@ -110,9 +108,6 @@ def prefix_then_stop_prompt(
         model=model, messages=messages, stop=[suffix]
     )
     return response.choices[0].message.content
-    # return prefix + response.choices[0].message.content
-
-
 def conversational_prompt(
     messages: List[Dict[str, str]],
     system_prompt: str = "You are a helpful conversational assistant. Respond in a short, concise, friendly manner.",
